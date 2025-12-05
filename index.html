@@ -2,53 +2,87 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <title>小转盘</title>
+  <title>小任务机：转盘 & 抽卡</title>
   <style>
     * {
       box-sizing: border-box;
     }
 
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       margin: 0;
       min-height: 100vh;
-
-      /* 好看的背景：渐变 + 背景图淡淡叠加 */
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background:
-        linear-gradient(135deg, rgba(135, 206, 250, 0.55), rgba(255, 182, 193, 0.7)),
-        url("https://images.unsplash.com/photo-1517818332936-6cfdd8ac3be1?auto=format&fit=crop&w=1400&q=80")
-        center/cover fixed no-repeat;
-
+        linear-gradient(135deg, rgba(135, 206, 250, 0.6), rgba(255, 182, 193, 0.8));
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 24px;
     }
 
-    /* 中央白色卡片 */
     .card {
-      width: 420px;
+      width: 460px;
       max-width: 100%;
-      background: rgba(255, 255, 255, 0.9);
-      border-radius: 20px;
-      box-shadow: 0 16px 40px rgba(0,0,0,0.18);
-      padding: 24px 26px 20px;
+      background: rgba(255, 255, 255, 0.96);
+      border-radius: 24px;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.18);
+      padding: 24px 26px 22px;
     }
 
     h1 {
-      margin: 0 0 12px;
+      margin: 0 0 10px;
       text-align: center;
       font-size: 26px;
       letter-spacing: 2px;
       color: #222;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.12);
+      text-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
+    .mode-toggle {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 10px;
+    }
+
+    .mode-toggle-inner {
+      background: #f1f3f6;
+      border-radius: 999px;
+      padding: 3px;
+      display: inline-flex;
+      gap: 4px;
+    }
+
+    .mode-btn {
+      border: none;
+      background: transparent;
+      padding: 5px 14px;
+      font-size: 13px;
+      border-radius: 999px;
+      cursor: pointer;
+      color: #555;
+    }
+
+    .mode-btn.active {
+      background: white;
+      color: #1976d2;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+      font-weight: 600;
+    }
+
+    .mode-section {
+      display: none;
+    }
+
+    .mode-section.active {
+      display: block;
+    }
+
+    /* 转盘部分样式 */
     #wheel-container {
       position: relative;
       width: 320px;
       height: 320px;
-      margin: 0 auto 16px;
+      margin: 6px auto 10px;
       filter: drop-shadow(0 10px 22px rgba(0,0,0,0.25));
     }
 
@@ -60,7 +94,6 @@
       background: #fff;
     }
 
-    /* 上方指针 */
     #pointer {
       position: absolute;
       top: -22px;
@@ -77,7 +110,7 @@
     #spin-btn {
       display: block;
       margin: 0 auto;
-      padding: 10px 26px;
+      padding: 9px 24px;
       font-size: 15px;
       border-radius: 999px;
       border: none;
@@ -101,19 +134,159 @@
       box-shadow: none;
     }
 
-    #result {
-      margin-top: 10px;
+    #wheel-result {
+      margin-top: 6px;
       text-align: center;
-      font-size: 16px;
-      min-height: 22px;
+      font-size: 15px;
+      min-height: 20px;
       font-weight: 600;
       color: #333;
       opacity: 0;
       transition: opacity .3s ease;
     }
 
+    /* 抽卡部分样式 */
+    .result-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 10px;
+      margin-top: 4px;
+    }
+
+    .result-label {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 6px;
+    }
+
+    .result-card {
+      width: 260px;
+      min-height: 90px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #ffe0b2, #ffccbc);
+      box-shadow: 0 10px 22px rgba(0,0,0,0.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px 18px;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 600;
+      color: #5d4037;
+
+      opacity: 0;
+      transform: scale(0.9) translateY(10px);
+      transition: all 0.25s ease-out;
+    }
+
+    .result-card.show {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+
+    .placeholder {
+      font-size: 13px;
+      color: #999;
+      font-weight: 400;
+    }
+
+    #draw-btn {
+      display: block;
+      margin: 6px auto 2px;
+      padding: 10px 26px;
+      font-size: 15px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      color: #fff;
+      background: linear-gradient(135deg, #7b1fa2, #ba68c8);
+      box-shadow: 0 5px 14px rgba(0,0,0,0.25);
+      transition: 0.2s ease;
+    }
+    #draw-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    }
+    #draw-btn:active {
+      transform: translateY(0);
+      box-shadow: 0 3px 10px rgba(0,0,0,0.35);
+    }
+    #draw-btn:disabled {
+      background: #90a4ae;
+      cursor: default;
+      box-shadow: none;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 6px;
+      max-height: 68px;
+      overflow-y: auto;
+    }
+
+    .chip {
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      background: rgba(25, 118, 210, 0.08);
+      color: #1e88e5;
+      border: 1px solid rgba(25, 118, 210, 0.25);
+      white-space: nowrap;
+      max-width: 100%;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    .history {
+      margin-top: 8px;
+      border-top: 1px solid #eee;
+      padding-top: 6px;
+      font-size: 12px;
+      color: #666;
+      max-height: 110px;
+      overflow-y: auto;
+    }
+
+    .history-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .history-list {
+      list-style: none;
+      padding-left: 0;
+      margin: 0;
+    }
+
+    .history-list li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 2px 0;
+      border-bottom: 1px dashed #eee;
+    }
+
+    .history-item-text {
+      max-width: 72%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .history-time {
+      font-size: 11px;
+      color: #999;
+      margin-left: 8px;
+      flex-shrink: 0;
+    }
+
+    /* 公用任务输入区 */
+
     #items-input {
-      margin-top: 16px;
+      margin-top: 10px;
       font-size: 13px;
       color: #444;
     }
@@ -144,22 +317,57 @@
       transform: translateY(1px);
       box-shadow: 0 1px 3px rgba(0,0,0,0.25);
     }
+
+    .pool-note {
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 2px;
+    }
   </style>
 </head>
 <body>
   <div class="card">
-    <h1>小转盘</h1>
+    <h1>小任务机</h1>
 
-    <div id="wheel-container">
-      <canvas id="wheel"></canvas>
-      <div id="pointer"></div>
+    <div class="mode-toggle">
+      <div class="mode-toggle-inner">
+        <button class="mode-btn active" data-mode="wheel">转盘模式</button>
+        <button class="mode-btn" data-mode="gacha">抽卡模式</button>
+      </div>
     </div>
 
-    <button id="spin-btn">开始转</button>
-    <div id="result"></div>
+    <!-- 转盘模式 -->
+    <div id="wheel-section" class="mode-section active">
+      <div id="wheel-container">
+        <canvas id="wheel"></canvas>
+        <div id="pointer"></div>
+      </div>
+      <button id="spin-btn">开始转</button>
+      <div id="wheel-result"></div>
+    </div>
 
+    <!-- 抽卡模式 -->
+    <div id="gacha-section" class="mode-section">
+      <div class="result-area">
+        <div class="result-label">本次抽到的任务：</div>
+        <div id="result-card" class="result-card">
+          <span id="result-text" class="placeholder">点击下方按钮开始抽卡</span>
+        </div>
+      </div>
+      <button id="draw-btn">抽一张</button>
+
+      <div class="pool-note">当前任务池：</div>
+      <div id="pool-items" class="chips"></div>
+
+      <div class="history">
+        <div class="history-title">抽卡历史（最近）</div>
+        <ul id="history-list" class="history-list"></ul>
+      </div>
+    </div>
+
+    <!-- 共用任务编辑区 -->
     <div id="items-input">
-      <div>每行一个选项，改完点“更新转盘”：</div>
+      <div>每行一个任务，修改后点击“更新任务池”（同时作用于转盘和抽卡）：</div>
       <textarea id="items-textarea">学习 30 分钟
 刷手机 10 分钟
 喝水休息
@@ -168,45 +376,54 @@
 准备简历
 做项目
 整理房间</textarea>
-      <button id="update-items">更新转盘</button>
+      <button id="update-items">更新任务池</button>
     </div>
   </div>
 
   <script>
+    // 共用任务池
+    const textarea = document.getElementById('items-textarea');
+    const updateBtn = document.getElementById('update-items');
+
+    let items = [];
+    let colors = [];
+
+    // 模式切换
+    const modeButtons = document.querySelectorAll('.mode-btn');
+    const wheelSection = document.getElementById('wheel-section');
+    const gachaSection = document.getElementById('gacha-section');
+
+    modeButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const mode = btn.dataset.mode;
+        modeButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        if (mode === 'wheel') {
+          wheelSection.classList.add('active');
+          gachaSection.classList.remove('active');
+        } else {
+          gachaSection.classList.add('active');
+          wheelSection.classList.remove('active');
+        }
+      });
+    });
+
+    // ===== 转盘逻辑 =====
     const canvas = document.getElementById('wheel');
     const ctx = canvas.getContext('2d');
     const spinBtn = document.getElementById('spin-btn');
-    const resultDiv = document.getElementById('result');
-    const textarea = document.getElementById('items-textarea');
-    const updateBtn = document.getElementById('update-items');
+    const wheelResultDiv = document.getElementById('wheel-result');
 
     const size = 320;
     canvas.width = size;
     canvas.height = size;
 
-    let items = [];
-    let colors = [];
     let currentAngle = 0;
     let spinning = false;
 
-    function updateItemsFromTextarea() {
-      items = textarea.value
-        .split('\n')
-        .map(s => s.trim())
-        .filter(s => s.length > 0);
-      if (items.length === 0) {
-        items = ['占位1', '占位2'];
-      }
-      colors = items.map((_, i) => {
-        const hue = (360 * i) / items.length;
-        return `hsl(${hue}, 70%, 60%)`;
-      });
-      drawWheel();
-      resultDiv.textContent = '';
-      resultDiv.style.opacity = 0;
-    }
-
     function drawWheel() {
+      if (items.length === 0) return;
       const radius = size / 2;
       const cx = radius;
       const cy = radius;
@@ -223,7 +440,6 @@
         ctx.fillStyle = colors[i];
         ctx.fill();
 
-        // 文字
         ctx.save();
         ctx.translate(cx, cy);
         ctx.rotate(angle + slice / 2);
@@ -234,7 +450,6 @@
         ctx.restore();
       }
 
-      // 中心圆
       ctx.beginPath();
       ctx.arc(cx, cy, 32, 0, 2 * Math.PI);
       ctx.fillStyle = '#ffffff';
@@ -245,13 +460,13 @@
     }
 
     function spin() {
-      if (spinning) return;
+      if (spinning || items.length === 0) return;
       spinning = true;
       spinBtn.disabled = true;
-      resultDiv.style.opacity = 0;
+      wheelResultDiv.style.opacity = 0;
 
       const slice = (2 * Math.PI) / items.length;
-      const extraTurns = 3 + Math.random() * 3; // 3~6圈
+      const extraTurns = 3 + Math.random() * 3;
       const targetAngle = currentAngle + extraTurns * 2 * Math.PI + Math.random() * 2 * Math.PI;
 
       const duration = 3500;
@@ -272,17 +487,13 @@
           spinning = false;
           spinBtn.disabled = false;
 
-          // ---- 指针对齐的核心逻辑 ----
-          // currentAngle 是轮盘整体逆时针旋转的角度
-          // 指针在正上方，对应全局角度 -π/2 = 3π/2
           const normalized = (currentAngle % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
           const pointerAngle = (3 * Math.PI / 2 - normalized + 2 * Math.PI) % (2 * Math.PI);
           const index = Math.floor(pointerAngle / slice) % items.length;
           const selected = items[index];
-          // ----------------------------
 
-          resultDiv.textContent = '结果：' + selected;
-          resultDiv.style.opacity = 1;
+          wheelResultDiv.textContent = '结果：' + selected;
+          wheelResultDiv.style.opacity = 1;
         }
       }
 
@@ -290,6 +501,101 @@
     }
 
     spinBtn.addEventListener('click', spin);
+
+    // ===== 抽卡逻辑 =====
+    const poolDiv = document.getElementById('pool-items');
+    const drawBtn = document.getElementById('draw-btn');
+    const resultCard = document.getElementById('result-card');
+    const resultText = document.getElementById('result-text');
+    const historyList = document.getElementById('history-list');
+
+    let drawing = false;
+
+    function renderPoolChips() {
+      poolDiv.innerHTML = '';
+      items.forEach(text => {
+        const chip = document.createElement('span');
+        chip.className = 'chip';
+        chip.textContent = text;
+        poolDiv.appendChild(chip);
+      });
+    }
+
+    function addHistory(item) {
+      const li = document.createElement('li');
+
+      const spanText = document.createElement('span');
+      spanText.className = 'history-item-text';
+      spanText.textContent = item;
+
+      const spanTime = document.createElement('span');
+      spanTime.className = 'history-time';
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, '0');
+      const mm = String(now.getMinutes()).padStart(2, '0');
+      spanTime.textContent = `${hh}:${mm}`;
+
+      li.appendChild(spanText);
+      li.appendChild(spanTime);
+
+      historyList.insertBefore(li, historyList.firstChild);
+      while (historyList.children.length > 15) {
+        historyList.removeChild(historyList.lastChild);
+      }
+    }
+
+    function drawCard() {
+      if (drawing || items.length === 0) return;
+      drawing = true;
+      drawBtn.disabled = true;
+
+      resultCard.classList.remove('show');
+      resultText.textContent = '抽卡中…';
+      resultText.classList.remove('placeholder');
+
+      setTimeout(() => {
+        const idx = Math.floor(Math.random() * items.length);
+        const selected = items[idx];
+
+        resultText.textContent = selected;
+        resultCard.classList.add('show');
+        addHistory(selected);
+
+        drawing = false;
+        drawBtn.disabled = false;
+      }, 700);
+    }
+
+    drawBtn.addEventListener('click', drawCard);
+
+    // ===== 共用：更新任务池 =====
+    function updateItemsFromTextarea() {
+      items = textarea.value
+        .split('\n')
+        .map(s => s.trim())
+        .filter(s => s.length > 0);
+
+      if (items.length === 0) {
+        items = ['占位任务 1', '占位任务 2'];
+      }
+
+      colors = items.map((_, i) => {
+        const hue = (360 * i) / items.length;
+        return `hsl(${hue}, 70%, 60%)`;
+      });
+
+      // 刷新转盘 & 抽卡展示
+      drawWheel();
+      renderPoolChips();
+
+      wheelResultDiv.textContent = '';
+      wheelResultDiv.style.opacity = 0;
+
+      resultText.textContent = '点击下方按钮开始抽卡';
+      resultText.classList.add('placeholder');
+      resultCard.classList.remove('show');
+    }
+
     updateBtn.addEventListener('click', updateItemsFromTextarea);
 
     // 初始化
