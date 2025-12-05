@@ -145,56 +145,90 @@
       transition: opacity .3s ease;
     }
 
-    /* 抽卡部分样式 */
-    .result-area {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-bottom: 10px;
+    /* 抽卡部分样式：卡片列 + 抽出动画 */
+
+    #gacha-section {
       margin-top: 4px;
     }
 
-    .result-label {
-      font-size: 14px;
-      color: #666;
-      margin-bottom: 6px;
+    .gacha-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
-    .result-card {
-      width: 260px;
-      min-height: 90px;
-      border-radius: 18px;
-      background: linear-gradient(135deg, #ffe0b2, #ffccbc);
-      box-shadow: 0 10px 22px rgba(0,0,0,0.18);
+    .gacha-column-wrapper {
+      width: 100%;
+      max-width: 320px;
+      height: 220px;
+      margin: 4px auto 8px;
+      border-radius: 16px;
+      padding: 8px 10px;
+      background: linear-gradient(135deg, #f5f7fa, #e3f2fd);
+      box-shadow: inset 0 0 8px rgba(0,0,0,0.08);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .gacha-column {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: transform 0.3s ease;
+    }
+
+    .gacha-card {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 6px 10px;
+      font-size: 14px;
+      color: #333;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
       display: flex;
       align-items: center;
-      justify-content: center;
-      padding: 14px 18px;
-      text-align: center;
-      font-size: 18px;
-      font-weight: 600;
-      color: #5d4037;
-
-      opacity: 0;
-      transform: scale(0.9) translateY(10px);
-      transition: all 0.25s ease-out;
+      justify-content: space-between;
+      position: relative;
     }
 
-    .result-card.show {
-      opacity: 1;
-      transform: scale(1) translateY(0);
+    .gacha-card-text {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 85%;
     }
 
-    .placeholder {
-      font-size: 13px;
-      color: #999;
-      font-weight: 400;
+    .gacha-card-tag {
+      font-size: 11px;
+      color: #90a4ae;
+      flex-shrink: 0;
+      margin-left: 6px;
+    }
+
+    /* 洗牌动画 */
+    .gacha-column.shuffling .gacha-card {
+      animation: shuffleMove 0.5s ease-in-out infinite alternate;
+      filter: blur(0.5px);
+      opacity: 0.85;
+    }
+
+    @keyframes shuffleMove {
+      from {
+        transform: translateY(-3px) scale(0.99);
+      }
+      to {
+        transform: translateY(3px) scale(1.01);
+      }
+    }
+
+    .gacha-card.selected {
+      border: 2px solid #ffb74d;
+      box-shadow: 0 0 10px rgba(255, 167, 38, 0.8);
     }
 
     #draw-btn {
       display: block;
-      margin: 6px auto 2px;
-      padding: 10px 26px;
+      margin: 6px auto 6px;
+      padding: 9px 26px;
       font-size: 15px;
       border-radius: 999px;
       border: none;
@@ -218,75 +252,54 @@
       box-shadow: none;
     }
 
-    .chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-bottom: 6px;
-      max-height: 68px;
-      overflow-y: auto;
+    .gacha-result {
+      width: 100%;
+      max-width: 320px;
+      margin-top: 4px;
     }
 
-    .chip {
-      padding: 3px 8px;
-      border-radius: 999px;
-      font-size: 12px;
-      background: rgba(25, 118, 210, 0.08);
-      color: #1e88e5;
-      border: 1px solid rgba(25, 118, 210, 0.25);
-      white-space: nowrap;
-      max-width: 100%;
-      text-overflow: ellipsis;
-      overflow: hidden;
-    }
-
-    .history {
-      margin-top: 8px;
-      border-top: 1px solid #eee;
-      padding-top: 6px;
-      font-size: 12px;
+    .gacha-result-label {
+      font-size: 13px;
       color: #666;
-      max-height: 110px;
-      overflow-y: auto;
-    }
-
-    .history-title {
-      font-weight: 600;
       margin-bottom: 4px;
+      text-align: left;
     }
 
-    .history-list {
-      list-style: none;
-      padding-left: 0;
-      margin: 0;
-    }
-
-    .history-list li {
+    .gacha-result-card {
+      width: 100%;
+      min-height: 70px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #ffe0b2, #ffccbc);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.18);
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      padding: 2px 0;
-      border-bottom: 1px dashed #eee;
+      justify-content: center;
+      padding: 10px 14px;
+      text-align: center;
+      font-size: 17px;
+      font-weight: 600;
+      color: #5d4037;
+
+      opacity: 0;
+      transform: scale(0.9) translateY(8px);
+      transition: all 0.25s ease-out;
     }
 
-    .history-item-text {
-      max-width: 72%;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+    .gacha-result-card.show {
+      opacity: 1;
+      transform: scale(1) translateY(0);
     }
 
-    .history-time {
-      font-size: 11px;
+    .placeholder {
+      font-size: 13px;
       color: #999;
-      margin-left: 8px;
-      flex-shrink: 0;
+      font-weight: 400;
     }
 
-    /* 公用任务输入区 */
+    /* 共用任务输入区 */
 
     #items-input {
-      margin-top: 10px;
+      margin-top: 12px;
       font-size: 13px;
       color: #444;
     }
@@ -321,7 +334,51 @@
     .pool-note {
       font-size: 12px;
       color: #888;
+      margin-top: 2px;
       margin-bottom: 2px;
+      text-align: left;
+      width: 100%;
+      max-width: 320px;
+    }
+
+    /* 手机适配 */
+    @media (max-width: 600px) {
+      body {
+        padding: 12px;
+      }
+
+      .card {
+        width: 100%;
+        border-radius: 18px;
+        padding: 18px 16px 16px;
+        box-shadow: 0 12px 28px rgba(0,0,0,0.18);
+      }
+
+      h1 {
+        font-size: 22px;
+      }
+
+      #wheel-container {
+        width: 260px;
+        height: 260px;
+      }
+
+      #wheel-result {
+        font-size: 14px;
+      }
+
+      .gacha-column-wrapper {
+        max-width: 100%;
+        height: 200px;
+      }
+
+      .gacha-result {
+        max-width: 100%;
+      }
+
+      .gacha-result-card {
+        font-size: 16px;
+      }
     }
   </style>
 </head>
@@ -346,28 +403,25 @@
       <div id="wheel-result"></div>
     </div>
 
-    <!-- 抽卡模式 -->
+    <!-- 抽卡模式：一列卡片 + 洗牌动画 -->
     <div id="gacha-section" class="mode-section">
-      <div class="result-area">
-        <div class="result-label">本次抽到的任务：</div>
-        <div id="result-card" class="result-card">
-          <span id="result-text" class="placeholder">点击下方按钮开始抽卡</span>
+      <div class="gacha-area">
+        <div class="gacha-column-wrapper">
+          <div class="gacha-column" id="gacha-column"></div>
         </div>
-      </div>
-      <button id="draw-btn">抽一张</button>
-
-      <div class="pool-note">当前任务池：</div>
-      <div id="pool-items" class="chips"></div>
-
-      <div class="history">
-        <div class="history-title">抽卡历史（最近）</div>
-        <ul id="history-list" class="history-list"></ul>
+        <button id="draw-btn">抽一张</button>
+        <div class="gacha-result">
+          <div class="gacha-result-label">本次抽到：</div>
+          <div id="gacha-result-card" class="gacha-result-card">
+            <span id="gacha-result-text" class="placeholder">点击“抽一张”开始</span>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- 共用任务编辑区 -->
     <div id="items-input">
-      <div>每行一个任务，修改后点击“更新任务池”（同时作用于转盘和抽卡）：</div>
+      <div>每行一个任务，修改后点击“更新任务池”（转盘和抽卡共用这一份任务列表）：</div>
       <textarea id="items-textarea">学习 30 分钟
 刷手机 10 分钟
 喝水休息
@@ -502,46 +556,38 @@
 
     spinBtn.addEventListener('click', spin);
 
-    // ===== 抽卡逻辑 =====
-    const poolDiv = document.getElementById('pool-items');
+    // ===== 抽卡逻辑：卡片列 + 洗牌动画 =====
+    const gachaColumn = document.getElementById('gacha-column');
     const drawBtn = document.getElementById('draw-btn');
-    const resultCard = document.getElementById('result-card');
-    const resultText = document.getElementById('result-text');
-    const historyList = document.getElementById('history-list');
+    const gachaResultCard = document.getElementById('gacha-result-card');
+    const gachaResultText = document.getElementById('gacha-result-text');
 
     let drawing = false;
 
-    function renderPoolChips() {
-      poolDiv.innerHTML = '';
-      items.forEach(text => {
-        const chip = document.createElement('span');
-        chip.className = 'chip';
-        chip.textContent = text;
-        poolDiv.appendChild(chip);
+    function renderGachaColumn() {
+      gachaColumn.innerHTML = '';
+      items.forEach((text, idx) => {
+        const card = document.createElement('div');
+        card.className = 'gacha-card';
+        card.dataset.index = idx.toString();
+
+        const spanText = document.createElement('span');
+        spanText.className = 'gacha-card-text';
+        spanText.textContent = text;
+
+        const spanTag = document.createElement('span');
+        spanTag.className = 'gacha-card-tag';
+        spanTag.textContent = '任务';
+
+        card.appendChild(spanText);
+        card.appendChild(spanTag);
+        gachaColumn.appendChild(card);
       });
     }
 
-    function addHistory(item) {
-      const li = document.createElement('li');
-
-      const spanText = document.createElement('span');
-      spanText.className = 'history-item-text';
-      spanText.textContent = item;
-
-      const spanTime = document.createElement('span');
-      spanTime.className = 'history-time';
-      const now = new Date();
-      const hh = String(now.getHours()).padStart(2, '0');
-      const mm = String(now.getMinutes()).padStart(2, '0');
-      spanTime.textContent = `${hh}:${mm}`;
-
-      li.appendChild(spanText);
-      li.appendChild(spanTime);
-
-      historyList.insertBefore(li, historyList.firstChild);
-      while (historyList.children.length > 15) {
-        historyList.removeChild(historyList.lastChild);
-      }
+    function clearSelectedCard() {
+      const selected = gachaColumn.querySelector('.gacha-card.selected');
+      if (selected) selected.classList.remove('selected');
     }
 
     function drawCard() {
@@ -549,21 +595,33 @@
       drawing = true;
       drawBtn.disabled = true;
 
-      resultCard.classList.remove('show');
-      resultText.textContent = '抽卡中…';
-      resultText.classList.remove('placeholder');
+      clearSelectedCard();
+      gachaResultCard.classList.remove('show');
+      gachaResultText.textContent = '抽卡中…';
+      gachaResultText.classList.remove('placeholder');
+
+      // 开始洗牌动画
+      gachaColumn.classList.add('shuffling');
 
       setTimeout(() => {
-        const idx = Math.floor(Math.random() * items.length);
-        const selected = items[idx];
+        gachaColumn.classList.remove('shuffling');
 
-        resultText.textContent = selected;
-        resultCard.classList.add('show');
-        addHistory(selected);
+        const idx = Math.floor(Math.random() * items.length);
+        const selectedText = items[idx];
+
+        // 标记被抽中的那张卡
+        const selectedCard = gachaColumn.querySelector(`.gacha-card[data-index="${idx}"]`);
+        if (selectedCard) {
+          selectedCard.classList.add('selected');
+        }
+
+        // 显示结果卡
+        gachaResultText.textContent = selectedText;
+        gachaResultCard.classList.add('show');
 
         drawing = false;
         drawBtn.disabled = false;
-      }, 700);
+      }, 700); // 洗牌时长
     }
 
     drawBtn.addEventListener('click', drawCard);
@@ -586,14 +644,15 @@
 
       // 刷新转盘 & 抽卡展示
       drawWheel();
-      renderPoolChips();
+      renderGachaColumn();
+      clearSelectedCard();
 
       wheelResultDiv.textContent = '';
       wheelResultDiv.style.opacity = 0;
 
-      resultText.textContent = '点击下方按钮开始抽卡';
-      resultText.classList.add('placeholder');
-      resultCard.classList.remove('show');
+      gachaResultText.textContent = '点击“抽一张”开始';
+      gachaResultText.classList.add('placeholder');
+      gachaResultCard.classList.remove('show');
     }
 
     updateBtn.addEventListener('click', updateItemsFromTextarea);
