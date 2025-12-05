@@ -5,101 +5,133 @@
 <title>幸运转盘</title>
 <style>
   body {
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     margin: 0;
     padding: 0;
-    background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    height: 100vh;
+    overflow: hidden;
+
+    /* 超高清背景图 */
+    background: url('https://images.unsplash.com/photo-1517818332936-6cfdd8ac3be1?auto=format&fit=crop&w=1500&q=80') no-repeat center/cover;
+  }
+
+  /* 半透明模糊遮罩层，让内容更突出 */
+  .overlay {
+    backdrop-filter: blur(18px);
+    background: rgba(255, 255, 255, 0.28);
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    inset: 0;
+  }
+
+  .content {
+    position: relative;
+    z-index: 2;
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-height: 100vh;
+    height: 100%;
+    padding-top: 40px;
   }
 
   h1 {
-    margin-top: 40px;
-    font-size: 32px;
-    color: #333;
+    margin: 0;
+    font-size: 36px;
+    color: #fff;
     letter-spacing: 1px;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    text-shadow: 0px 3px 8px rgba(0,0,0,0.5);
   }
 
   #wheel-container {
     position: relative;
     width: 360px;
     height: 360px;
-    margin: 20px 0;
+    margin-top: 30px;
+    filter: drop-shadow(0 12px 24px rgba(0,0,0,0.35));
   }
 
   #wheel {
     width: 100%;
     height: 100%;
     border-radius: 50%;
-    border: 8px solid #fff;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-    background: #fff;
+    border: 10px solid rgba(255,255,255,0.9);
+    box-shadow:
+      0 0 20px rgba(255,255,255,0.6),
+      0 0 40px rgba(255,255,255,0.4),
+      inset 0 0 30px rgba(255,255,255,0.4);
+    background: #ffffff;
   }
 
   #pointer {
     position: absolute;
-    top: -22px;
+    top: -28px;
     left: 50%;
     transform: translateX(-50%);
     width: 0;
     height: 0;
-    border-left: 18px solid transparent;
-    border-right: 18px solid transparent;
-    border-bottom: 32px solid #ff4d4f;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+    border-bottom: 38px solid #ff4d4f;
+
+    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
   }
 
   button {
-    padding: 12px 26px;
-    font-size: 16px;
-    border-radius: 50px;
+    margin-top: 20px;
+    padding: 14px 32px;
+    font-size: 18px;
+    border-radius: 60px;
     border: none;
     cursor: pointer;
     color: white;
-    background: linear-gradient(135deg, #4facfe, #00f2fe);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    transition: 0.2s ease;
+
+    background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.25);
+    transition: 0.25s ease-out;
   }
   button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 22px rgba(0,0,0,0.35);
   }
   button:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    transform: translateY(0px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.28);
   }
   button:disabled {
-    background: #b0c4de;
+    background: #bbb;
     cursor: default;
-    box-shadow: none;
   }
 
   #result {
-    margin-top: 16px;
-    font-size: 20px;
-    color: #333;
+    margin-top: 22px;
+    font-size: 26px;
+    color: #fff;
     font-weight: bold;
+    text-shadow: 0 4px 12px rgba(0,0,0,0.6);
     opacity: 0;
-    transition: opacity .3s ease;
+    transition: opacity .4s ease;
   }
-
 </style>
 </head>
+
 <body>
+<div class="overlay"></div>
 
-<h1>幸运转盘</h1>
+<div class="content">
 
-<div id="wheel-container">
-  <canvas id="wheel"></canvas>
-  <div id="pointer"></div>
+  <h1>✨ 幸运转盘 ✨</h1>
+
+  <div id="wheel-container">
+    <canvas id="wheel"></canvas>
+    <div id="pointer"></div>
+  </div>
+
+  <button id="spin-btn">开始抽取</button>
+
+  <div id="result"></div>
 </div>
-
-<button id="spin-btn">开始抽取</button>
-
-<div id="result"></div>
 
 <script>
   const canvas = document.getElementById("wheel");
@@ -107,12 +139,10 @@
   const spinBtn = document.getElementById("spin-btn");
   const resultDiv = document.getElementById("result");
 
-  // 设置画布大小
   const size = 360;
   canvas.width = size;
   canvas.height = size;
 
-  // 默认选项
   const items = [
     "学习 30 分钟",
     "刷手机 10 分钟",
@@ -127,11 +157,9 @@
   let currentAngle = 0;
   let spinning = false;
 
-  // 随机配色
-  const colors = items.map((_, i) => {
-    const hue = (360 * i) / items.length;
-    return `hsl(${hue}, 75%, 60%)`;
-  });
+  const colors = items.map((_, i) => 
+    `hsl(${(360 * i) / items.length}, 70%, 60%)`
+  );
 
   function drawWheel() {
     const radius = size / 2;
@@ -151,25 +179,20 @@
       ctx.fillStyle = colors[i];
       ctx.fill();
 
-      // 写文字
       ctx.save();
       ctx.translate(cx, cy);
       ctx.rotate(angle + slice / 2);
       ctx.textAlign = "right";
       ctx.fillStyle = "#fff";
       ctx.font = "18px system-ui";
-      ctx.fillText(items[i], radius - 25, 6);
+      ctx.fillText(items[i], radius - 28, 6);
       ctx.restore();
     }
 
-    // 中心圆
     ctx.beginPath();
-    ctx.arc(cx, cy, 38, 0, 2 * Math.PI);
-    ctx.fillStyle = "#ffffff";
+    ctx.arc(cx, cy, 40, 0, 2 * Math.PI);
+    ctx.fillStyle = "#ffffffcc";
     ctx.fill();
-    ctx.strokeStyle = "#ddd";
-    ctx.lineWidth = 3;
-    ctx.stroke();
   }
 
   drawWheel();
@@ -182,7 +205,6 @@
 
     const slice = (2 * Math.PI) / items.length;
 
-    // 多转几圈再停
     const extraTurns = 4 + Math.random() * 3;
     const targetAngle = currentAngle + extraTurns * 2 * Math.PI + Math.random() * 2 * Math.PI;
 
@@ -204,10 +226,8 @@
         spinning = false;
         spinBtn.disabled = false;
 
-        // 角度归一化
         const normalized = (currentAngle % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
 
-        // 指针在上方：上方方向为角度 -π/2
         const pointerAngle = (3 * Math.PI / 2 - normalized + 2 * Math.PI) % (2 * Math.PI);
 
         const index = Math.floor(pointerAngle / slice);
