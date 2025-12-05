@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>幸运转盘</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      background: #f5f5f5;
+    }
+
+    h1 {
+      margin-bottom: 12px;
+    }
+
+    #wheel-container {
+      position: relative;
+      width: 320px;
+      height: 320px;
+      margin-bottom: 16px;
+    }
+
+    #wheel {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 6px solid #333;
+      box-shadow: 0 0 15px rgba(0,0,0,0.15);
+      background: white;
+    }
+
+    /* 上方指针 */
+    #pointer {
+      position: absolute;
+      top: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 14px solid transparent;
+      border-right: 14px solid transparent;
+      border-bottom: 26px solid #e53935;
+    }
+
+    #spin-btn {
+      padding: 8px 18px;
+      font-size: 15px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      background: #1976d2;
+      color: white;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+    #spin-btn:active {
+      transform: translateY(1px);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    #spin-btn:disabled {
+      background: #90a4ae;
+      cursor: default;
+      box-shadow: none;
+    }
+
+    #result {
+      margin-top: 12px;
+      font-size: 16px;
+      min-height: 22px;
+    }
+
+    #items-input {
+      margin-top: 12px;
+      width: 320px;
+      max-width: 90vw;
+      font-size: 13px;
+    }
+
+    #items-input textarea {
+      width: 100%;
+      min-height: 70px;
+      font-size: 13px;
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+      resize: vertical;
+    }
+
+    #items-input button {
+      margin-top: 6px;
+      padding: 4px 10px;
+      font-size: 13px;
+      border-radius: 999px;
+      border: none;
+      background: #43a047;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>小转盘</h1>
+
+  <div id="wheel-container">
+    <canvas id="wheel"></canvas>
+    <div id="pointer"></div>
+  </div>
+
+  <button id="spin-btn">开始转</button>
+  <div id="result"></div>
+
+  <div id="items-input">
+    <div style="margin-bottom:4px;font-size:13px;color:#555;">
+      每行一个选项，改完点“更新转盘”：
+    </div>
+    <textarea id="items-textarea">学习 30 分钟
+刷手机 10 分钟
+喝水休息
+写作业
+复习上课内容
+准备简历
+做项目
+整理房间</textarea>
+    <button id="update-items">更新转盘</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('wheel');
+    const ctx = canvas.getContext('2d');
+    const spinBtn = document.getElementById('spin-btn');
+    const resultDiv = document.getElementById('result');
+    const textarea = document.getElementById('items-textarea');
+    const updateBtn = document.getElementById('update-items');
+
+    // 设定画布大小
+    const size = 320;
+    canvas.width = size;
+    canvas.height = size;
+
+    let items = [];
+    let colors = [];
+    let currentAngle = 0;
+    let spinning = false;
+
+    function updateItemsFromTextarea() {
+      items = textarea.value
+        .split('\n')
+        .map(s => s.trim())
+        .filter(s => s.length > 0);
+      if (items.length === 0) {
+        items = ['占位1', '占位2'];
+      }
+      // 为每个扇区生成颜色（HSL）
+      colors = items.map((_, i) => {
+        const hue = (360 * i) / items.length;
+        return `hsl(${hue}, 70%, 60%)`;
+      });
+      drawWheel();
+      resultDiv.textContent = '';
+    }
+
+    function drawWheel() {
+      const radius = size / 2;
+      const cx = radius;
+      const cy = radius;
+      const slice = (2 * Math.PI) / items.length;
+
+      ctx.clearRect(0, 0, size, size);
+
+      // 画扇区
+      for (let i = 0; i < items.length; i++) {
+        const angle = currentAngle + i * slice;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, radius - 5, angle, angle + slice);
+        ctx.closePath();
+        ctx.fillStyle = colors[i];
+        ctx.fill();
+
+        // 画文字
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(angle + slice / 2);
+        ctx.textAlign = 'right';
+        ctx.fillStyle = '#fff';
+        ctx.font = '14px system-ui';
+        ctx.fillText(items[i], radius - 18, 5);
+        ctx.restore();
+      }
+
+      // 中心圆
+      ctx.beginPath();
+      ctx.arc(cx, cy, 32, 0, 2 * Math.PI);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+      ctx.strokeStyle = '#333';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    function spin() {
+      if (spinning) return;
+      spinning = true;
+      spinBtn.disabled = true;
+      resultDiv.textContent = '';
+
+      const slice = (2 * Math.PI) / items.length;
+
+      // 随机目标角度：多转几圈再停
+      const extraTurns = 3 + Math.random() * 3; // 3~6圈
+      const targetAngle = currentAngle + extraTurns * 2 * Math.PI + Math.random() * 2 * Math.PI;
+
+      const duration = 3500; // 毫秒
+      const start = performance.now();
+      const startAngle = currentAngle;
+
+      function animate(now) {
+        const t = now - start;
+        const progress = Math.min(t / duration, 1);
+
+        // 缓动：一开始快，后面慢
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        currentAngle = startAngle + (targetAngle - startAngle) * easeOut;
+
+        drawWheel();
+
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          spinning = false;
+          spinBtn.disabled = false;
+          // 计算指针指向的扇区（指针在正上方）
+          const normalized = (2 * Math.PI - (currentAngle % (2 * Math.PI))) % (2 * Math.PI);
+          const index = Math.floor(normalized / slice) % items.length;
+          const selected = items[index];
+          resultDiv.textContent = '结果：' + selected;
+        }
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    spinBtn.addEventListener('click', spin);
+    updateBtn.addEventListener('click', updateItemsFromTextarea);
+
+    // 初始化一次
+    updateItemsFromTextarea();
+  </script>
+</body>
+</html>
