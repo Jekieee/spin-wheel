@@ -1,248 +1,299 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8" />
-<title>幸运转盘</title>
-<style>
-  body {
-    margin: 0;
-    padding: 0;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    height: 100vh;
-    overflow: hidden;
+  <meta charset="UTF-8" />
+  <title>小转盘</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
-    /* 超高清背景图 */
-    background: url('https://images.unsplash.com/photo-1517818332936-6cfdd8ac3be1?auto=format&fit=crop&w=1500&q=80') no-repeat center/cover;
-  }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      min-height: 100vh;
 
-  /* 半透明模糊遮罩层，让内容更突出 */
-  .overlay {
-    backdrop-filter: blur(18px);
-    background: rgba(255, 255, 255, 0.28);
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    inset: 0;
-  }
+      /* 好看的背景：渐变 + 背景图淡淡叠加 */
+      background:
+        linear-gradient(135deg, rgba(135, 206, 250, 0.55), rgba(255, 182, 193, 0.7)),
+        url("https://images.unsplash.com/photo-1517818332936-6cfdd8ac3be1?auto=format&fit=crop&w=1400&q=80")
+        center/cover fixed no-repeat;
 
-  .content {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    height: 100%;
-    padding-top: 40px;
-  }
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
 
-  h1 {
-    margin: 0;
-    font-size: 36px;
-    color: #fff;
-    letter-spacing: 1px;
-    text-shadow: 0px 3px 8px rgba(0,0,0,0.5);
-  }
+    /* 中央白色卡片 */
+    .card {
+      width: 420px;
+      max-width: 100%;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 20px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.18);
+      padding: 24px 26px 20px;
+    }
 
-  #wheel-container {
-    position: relative;
-    width: 360px;
-    height: 360px;
-    margin-top: 30px;
-    filter: drop-shadow(0 12px 24px rgba(0,0,0,0.35));
-  }
+    h1 {
+      margin: 0 0 12px;
+      text-align: center;
+      font-size: 26px;
+      letter-spacing: 2px;
+      color: #222;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.12);
+    }
 
-  #wheel {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    border: 10px solid rgba(255,255,255,0.9);
-    box-shadow:
-      0 0 20px rgba(255,255,255,0.6),
-      0 0 40px rgba(255,255,255,0.4),
-      inset 0 0 30px rgba(255,255,255,0.4);
-    background: #ffffff;
-  }
+    #wheel-container {
+      position: relative;
+      width: 320px;
+      height: 320px;
+      margin: 0 auto 16px;
+      filter: drop-shadow(0 10px 22px rgba(0,0,0,0.25));
+    }
 
-  #pointer {
-    position: absolute;
-    top: -28px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 0;
+    #wheel {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 8px solid #fff;
+      background: #fff;
+    }
 
-    border-left: 20px solid transparent;
-    border-right: 20px solid transparent;
-    border-bottom: 38px solid #ff4d4f;
+    /* 上方指针 */
+    #pointer {
+      position: absolute;
+      top: -22px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 16px solid transparent;
+      border-right: 16px solid transparent;
+      border-bottom: 30px solid #e53935;
+      filter: drop-shadow(0 3px 6px rgba(0,0,0,0.4));
+    }
 
-    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
-  }
+    #spin-btn {
+      display: block;
+      margin: 0 auto;
+      padding: 10px 26px;
+      font-size: 15px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      background: linear-gradient(135deg, #1976d2, #42a5f5);
+      color: white;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+      transition: 0.2s ease;
+    }
+    #spin-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+    }
+    #spin-btn:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+    }
+    #spin-btn:disabled {
+      background: #90a4ae;
+      cursor: default;
+      box-shadow: none;
+    }
 
-  button {
-    margin-top: 20px;
-    padding: 14px 32px;
-    font-size: 18px;
-    border-radius: 60px;
-    border: none;
-    cursor: pointer;
-    color: white;
+    #result {
+      margin-top: 10px;
+      text-align: center;
+      font-size: 16px;
+      min-height: 22px;
+      font-weight: 600;
+      color: #333;
+      opacity: 0;
+      transition: opacity .3s ease;
+    }
 
-    background: linear-gradient(135deg, #ff9a9e, #fad0c4);
-    box-shadow: 0 6px 14px rgba(0,0,0,0.25);
-    transition: 0.25s ease-out;
-  }
-  button:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 22px rgba(0,0,0,0.35);
-  }
-  button:active {
-    transform: translateY(0px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.28);
-  }
-  button:disabled {
-    background: #bbb;
-    cursor: default;
-  }
+    #items-input {
+      margin-top: 16px;
+      font-size: 13px;
+      color: #444;
+    }
 
-  #result {
-    margin-top: 22px;
-    font-size: 26px;
-    color: #fff;
-    font-weight: bold;
-    text-shadow: 0 4px 12px rgba(0,0,0,0.6);
-    opacity: 0;
-    transition: opacity .4s ease;
-  }
-</style>
+    #items-input textarea {
+      width: 100%;
+      min-height: 80px;
+      font-size: 13px;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      resize: vertical;
+      margin-top: 4px;
+    }
+
+    #update-items {
+      margin-top: 8px;
+      padding: 6px 14px;
+      font-size: 13px;
+      border-radius: 999px;
+      border: none;
+      background: #43a047;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+    #update-items:active {
+      transform: translateY(1px);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+    }
+  </style>
 </head>
-
 <body>
-<div class="overlay"></div>
+  <div class="card">
+    <h1>小转盘</h1>
 
-<div class="content">
+    <div id="wheel-container">
+      <canvas id="wheel"></canvas>
+      <div id="pointer"></div>
+    </div>
 
-  <h1>✨ 幸运转盘 ✨</h1>
+    <button id="spin-btn">开始转</button>
+    <div id="result"></div>
 
-  <div id="wheel-container">
-    <canvas id="wheel"></canvas>
-    <div id="pointer"></div>
+    <div id="items-input">
+      <div>每行一个选项，改完点“更新转盘”：</div>
+      <textarea id="items-textarea">学习 30 分钟
+刷手机 10 分钟
+喝水休息
+写作业
+复习上课内容
+准备简历
+做项目
+整理房间</textarea>
+      <button id="update-items">更新转盘</button>
+    </div>
   </div>
 
-  <button id="spin-btn">开始抽取</button>
+  <script>
+    const canvas = document.getElementById('wheel');
+    const ctx = canvas.getContext('2d');
+    const spinBtn = document.getElementById('spin-btn');
+    const resultDiv = document.getElementById('result');
+    const textarea = document.getElementById('items-textarea');
+    const updateBtn = document.getElementById('update-items');
 
-  <div id="result"></div>
-</div>
+    const size = 320;
+    canvas.width = size;
+    canvas.height = size;
 
-<script>
-  const canvas = document.getElementById("wheel");
-  const ctx = canvas.getContext("2d");
-  const spinBtn = document.getElementById("spin-btn");
-  const resultDiv = document.getElementById("result");
+    let items = [];
+    let colors = [];
+    let currentAngle = 0;
+    let spinning = false;
 
-  const size = 360;
-  canvas.width = size;
-  canvas.height = size;
-
-  const items = [
-    "学习 30 分钟",
-    "刷手机 10 分钟",
-    "喝水走动",
-    "写作业",
-    "复习讲义",
-    "准备简历",
-    "做项目",
-    "整理房间"
-  ];
-
-  let currentAngle = 0;
-  let spinning = false;
-
-  const colors = items.map((_, i) => 
-    `hsl(${(360 * i) / items.length}, 70%, 60%)`
-  );
-
-  function drawWheel() {
-    const radius = size / 2;
-    const cx = radius;
-    const cy = radius;
-    const slice = (2 * Math.PI) / items.length;
-
-    ctx.clearRect(0, 0, size, size);
-
-    for (let i = 0; i < items.length; i++) {
-      const angle = currentAngle + i * slice;
-
-      ctx.beginPath();
-      ctx.moveTo(cx, cy);
-      ctx.arc(cx, cy, radius - 5, angle, angle + slice);
-      ctx.closePath();
-      ctx.fillStyle = colors[i];
-      ctx.fill();
-
-      ctx.save();
-      ctx.translate(cx, cy);
-      ctx.rotate(angle + slice / 2);
-      ctx.textAlign = "right";
-      ctx.fillStyle = "#fff";
-      ctx.font = "18px system-ui";
-      ctx.fillText(items[i], radius - 28, 6);
-      ctx.restore();
-    }
-
-    ctx.beginPath();
-    ctx.arc(cx, cy, 40, 0, 2 * Math.PI);
-    ctx.fillStyle = "#ffffffcc";
-    ctx.fill();
-  }
-
-  drawWheel();
-
-  function spin() {
-    if (spinning) return;
-    spinning = true;
-    spinBtn.disabled = true;
-    resultDiv.style.opacity = 0;
-
-    const slice = (2 * Math.PI) / items.length;
-
-    const extraTurns = 4 + Math.random() * 3;
-    const targetAngle = currentAngle + extraTurns * 2 * Math.PI + Math.random() * 2 * Math.PI;
-
-    const duration = 3500;
-    const start = performance.now();
-    const startAngle = currentAngle;
-
-    function animate(now) {
-      const t = now - start;
-      const progress = Math.min(t / duration, 1);
-      const easeOut = 1 - Math.pow(1 - progress, 3);
-
-      currentAngle = startAngle + (targetAngle - startAngle) * easeOut;
-      drawWheel();
-
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      } else {
-        spinning = false;
-        spinBtn.disabled = false;
-
-        const normalized = (currentAngle % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
-
-        const pointerAngle = (3 * Math.PI / 2 - normalized + 2 * Math.PI) % (2 * Math.PI);
-
-        const index = Math.floor(pointerAngle / slice);
-        const result = items[index];
-
-        resultDiv.textContent = "结果：" + result;
-        resultDiv.style.opacity = 1;
+    function updateItemsFromTextarea() {
+      items = textarea.value
+        .split('\n')
+        .map(s => s.trim())
+        .filter(s => s.length > 0);
+      if (items.length === 0) {
+        items = ['占位1', '占位2'];
       }
+      colors = items.map((_, i) => {
+        const hue = (360 * i) / items.length;
+        return `hsl(${hue}, 70%, 60%)`;
+      });
+      drawWheel();
+      resultDiv.textContent = '';
+      resultDiv.style.opacity = 0;
     }
 
-    requestAnimationFrame(animate);
-  }
+    function drawWheel() {
+      const radius = size / 2;
+      const cx = radius;
+      const cy = radius;
+      const slice = (2 * Math.PI) / items.length;
 
-  spinBtn.addEventListener("click", spin);
-</script>
+      ctx.clearRect(0, 0, size, size);
 
+      for (let i = 0; i < items.length; i++) {
+        const angle = currentAngle + i * slice;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, radius - 5, angle, angle + slice);
+        ctx.closePath();
+        ctx.fillStyle = colors[i];
+        ctx.fill();
+
+        // 文字
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(angle + slice / 2);
+        ctx.textAlign = 'right';
+        ctx.fillStyle = '#fff';
+        ctx.font = '14px system-ui';
+        ctx.fillText(items[i], radius - 20, 5);
+        ctx.restore();
+      }
+
+      // 中心圆
+      ctx.beginPath();
+      ctx.arc(cx, cy, 32, 0, 2 * Math.PI);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+      ctx.strokeStyle = '#ddd';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    function spin() {
+      if (spinning) return;
+      spinning = true;
+      spinBtn.disabled = true;
+      resultDiv.style.opacity = 0;
+
+      const slice = (2 * Math.PI) / items.length;
+      const extraTurns = 3 + Math.random() * 3; // 3~6圈
+      const targetAngle = currentAngle + extraTurns * 2 * Math.PI + Math.random() * 2 * Math.PI;
+
+      const duration = 3500;
+      const start = performance.now();
+      const startAngle = currentAngle;
+
+      function animate(now) {
+        const t = now - start;
+        const progress = Math.min(t / duration, 1);
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+
+        currentAngle = startAngle + (targetAngle - startAngle) * easeOut;
+        drawWheel();
+
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          spinning = false;
+          spinBtn.disabled = false;
+
+          // ---- 指针对齐的核心逻辑 ----
+          // currentAngle 是轮盘整体逆时针旋转的角度
+          // 指针在正上方，对应全局角度 -π/2 = 3π/2
+          const normalized = (currentAngle % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
+          const pointerAngle = (3 * Math.PI / 2 - normalized + 2 * Math.PI) % (2 * Math.PI);
+          const index = Math.floor(pointerAngle / slice) % items.length;
+          const selected = items[index];
+          // ----------------------------
+
+          resultDiv.textContent = '结果：' + selected;
+          resultDiv.style.opacity = 1;
+        }
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    spinBtn.addEventListener('click', spin);
+    updateBtn.addEventListener('click', updateItemsFromTextarea);
+
+    // 初始化
+    updateItemsFromTextarea();
+  </script>
 </body>
 </html>
